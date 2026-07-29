@@ -36,10 +36,14 @@ jobs:
           SETTINGS="$HOME/.config/godot/editor_settings-4.3.tres"
           echo "Settings path: $SETTINGS"
           ls -la "$SETTINGS"
-          # Inject Android export settings using sed
-          for key in export/android/android_sdk_path export/android/java_sdk_path export/android/debug_keystore export/android/debug_keystore_user export/android/debug_keystore_pass; do
-            sed -i "/^$key =/d" "$SETTINGS"
-          done
+          # Inject Android export settings
+          cp "$SETTINGS" "$SETTINGS.bak"
+          grep -v "^export/android/android_sdk_path =" "$SETTINGS.bak" \
+            | grep -v "^export/android/java_sdk_path =" \
+            | grep -v "^export/android/debug_keystore =" \
+            | grep -v "^export/android/debug_keystore_user =" \
+            | grep -v "^export/android/debug_keystore_pass =" > "$SETTINGS"
+          rm "$SETTINGS.bak"
           {
             echo "export/android/android_sdk_path = \"/usr/lib/android-sdk\""
             echo "export/android/java_sdk_path = \"$JAVA_PATH\""
