@@ -31,15 +31,34 @@ jobs:
           echo "Java home: $JAVA_PATH"
           KEYSTORE_PATH="$HOME/.config/godot/debug.keystore"
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore "$KEYSTORE_PATH" -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
-          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
-          [gd_resource type="EditorSettings" format=3]
-          [resource]
-          export/android/android_sdk_path = "/usr/lib/android-sdk"
-          export/android/java_sdk_path = "$JAVA_PATH"
-          export/android/debug_keystore = "$KEYSTORE_PATH"
-          export/android/debug_keystore_user = "androiddebugkey"
-          export/android/debug_keystore_pass = "android"
-          EOF
+          # Generate a base editor settings file so Godot can load it correctly
+          godot --headless --editor --quit || true
+          SETTINGS="$HOME/.config/godot/editor_settings-4.3.tres"
+          echo "Settings path: $SETTINGS"
+          ls -la "$SETTINGS"
+          # Inject Android export settings
+          python3 - <<PY
+          import re
+          path = "$SETTINGS"
+          with open(path, "r") as f:
+              txt = f.read()
+          settings = [
+              'export/android/android_sdk_path = "/usr/lib/android-sdk"',
+              'export/android/java_sdk_path = "$JAVA_PATH"',
+              'export/android/debug_keystore = "$KEYSTORE_PATH"',
+              'export/android/debug_keystore_user = "androiddebugkey"',
+              'export/android/debug_keystore_pass = "android"',
+          ]
+          for s in settings:
+              key = s.split("=")[0].strip()
+              if key in txt:
+                  txt = re.sub(rf"{re.escape(key)}\\s*=.*", s, txt)
+              else:
+                  txt = txt.replace("[resource]", "[resource]\n" + s)
+          with open(path, "w") as f:
+              f.write(txt)
+          PY
+          cat "$SETTINGS"
 
       - name: Build Android APK
         run: |
