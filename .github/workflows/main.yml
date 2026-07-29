@@ -56,7 +56,7 @@ jobs:
       - name: Build Android APK
         run: |
           mkdir -p build/android
-          godot --headless --verbose --export-release "Android" ./build/android/MythDefense.apk
+          godot --headless --verbose --export-debug "Android" ./build/android/MythDefense.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
