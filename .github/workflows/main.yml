@@ -38,7 +38,7 @@ jobs:
           export/android/java_sdk_path = "$JAVA_PATH"
           export/android/debug_keystore = "$KEYSTORE_PATH"
           export/android/debug_keystore_user = "androiddebugkey"
-          export/android/debug_password = "android"
+          export/android/debug_keystore_pass = "android"
           EOF
 
       - name: Build Android APK
