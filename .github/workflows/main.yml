@@ -1,66 +1,33 @@
-name: Build MythDefense Android
+name: Godot Android Build
 
 on:
   push:
-    branches:
-      - main
-      - master
-  pull_request:
-    branches:
-      - main
-      - master
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
-  check-license:
-    name: Check Unity license secrets
-    runs-on: ubuntu-latest
-    outputs:
-      is_unity_license_set: ${{ steps.check.outputs.is_unity_license_set }}
-    steps:
-      - name: Check whether Unity activation secrets are present
-        id: check
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        run: |
-          is_set="${{ env.UNITY_LICENSE != '' }}"
-          echo "is_unity_license_set=$is_set" >> "$GITHUB_OUTPUT"
-
   build-android:
-    needs: check-license
-    if: needs.check-license.outputs.is_unity_license_set == 'true'
     name: Build Android APK
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    container:
+      image: barichello/godot-ci:4.3
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
-      - name: Cache Library
-        uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-Android-${{ github.sha }}
-          restore-keys: |
-            Library-Android-
+      - name: Setup export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          # godot-ci image already ships templates; verify location
+          ls -la /root/.local/share/godot/export_templates/4.3.stable || true
 
       - name: Build Android APK
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: Android
-          buildName: MythDefense
-          androidAppBundle: false
+        run: |
+          mkdir -p build/android
+          godot --headless --verbose --export-release "Android" ./build/android/MythDefense.apk
 
-      - name: Upload Android APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: MythDefense-Android
-          path: build/Android/**/*.apk
-          if-no-files-found: error
+          path: build/android/*.apk

@@ -1,0 +1,195 @@
+[gd_scene load_steps=10 format=3 uid="uid://game0000000000"]
+
+[ext_resource type="Script" path="res://scripts/game_controller.gd" id="1_controller"]
+[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="2_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/projectile.tscn" id="3_projectile"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="4_player"]
+[ext_resource type="Script" path="res://scripts/barrier.gd" id="5_barrier"]
+[ext_resource type="Texture2D" path="res://assets/sprites/playerShip2_blue.png" id="6_player_tex"]
+[ext_resource type="Texture2D" path="res://assets/sprites/laserRed01.png" id="7_barrier_tex"]
+[ext_resource type="Texture2D" path="res://assets/sprites/darkPurple.png" id="8_bg_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
+size = Vector2(90, 70)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_barrier"]
+size = Vector2(540, 20)
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_controller")
+enemy_scenes = Array[PackedScene]([ExtResource("2_enemy")])
+projectile_scene = ExtResource("3_projectile")
+
+[node name="Background" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 540.0
+offset_bottom = 960.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_bg_tex")
+stretch_mode = 1
+
+[node name="Player" type="Area2D" parent="." groups=["player"]]
+collision_layer = 1
+collision_mask = 2
+script = ExtResource("4_player")
+
+[node name="Sprite2D" type="Sprite2D" parent="Player"]
+texture = ExtResource("6_player_tex")
+
+[node name="Muzzle" type="Marker2D" parent="Player"]
+position = Vector2(0, -45)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+shape = SubResource("RectangleShape2D_player")
+
+[node name="Barrier" type="Area2D" parent="." groups=["barrier"]]
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("5_barrier")
+
+[node name="Sprite2D" type="Sprite2D" parent="Barrier"]
+scale = Vector2(1, 0.4)
+texture = ExtResource("7_barrier_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Barrier"]
+shape = SubResource("RectangleShape2D_barrier")
+
+[node name="EnemyContainer" type="Node2D" parent="."]
+
+[node name="ProjectileContainer" type="Node2D" parent="."]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="WaveLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 24
+text = "波次：1/10"
+
+[node name="TimeLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 55.0
+offset_right = 200.0
+offset_bottom = 85.0
+theme_override_font_sizes/font_size = 24
+text = "时间：0.0s"
+
+[node name="FPSLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 90.0
+offset_right = 200.0
+offset_bottom = 120.0
+theme_override_font_sizes/font_size = 20
+text = "FPS：60"
+
+[node name="XPBar" type="ProgressBar" parent="HUD"]
+offset_left = 20.0
+offset_top = 900.0
+offset_right = 520.0
+offset_bottom = 925.0
+max_value = 10.0
+value = 0.0
+
+[node name="HPBar" type="ProgressBar" parent="HUD"]
+offset_left = 20.0
+offset_top = 130.0
+offset_right = 200.0
+offset_bottom = 150.0
+max_value = 10.0
+value = 10.0
+
+[node name="BarrierBar" type="ProgressBar" parent="HUD"]
+offset_left = 20.0
+offset_top = 160.0
+offset_right = 200.0
+offset_bottom = 180.0
+max_value = 20.0
+value = 20.0
+
+[node name="SkillPanel" type="Panel" parent="HUD"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -250.0
+offset_right = 200.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="HUD/SkillPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 28
+text = "选择一项神通"
+horizontal_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/SkillPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="Button1" type="Button" parent="HUD/SkillPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+
+[node name="Button2" type="Button" parent="HUD/SkillPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+
+[node name="Button3" type="Button" parent="HUD/SkillPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+
+[node name="GameOverPanel" type="Panel" parent="HUD"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="HUD/GameOverPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -100.0
+offset_right = 200.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 32
+text = "游戏结束"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[connection signal="pressed" from="HUD/SkillPanel/VBoxContainer/Button1" to="." method="_on_skill_selected" binds= [0]]
+[connection signal="pressed" from="HUD/SkillPanel/VBoxContainer/Button2" to="." method="_on_skill_selected" binds= [1]]
+[connection signal="pressed" from="HUD/SkillPanel/VBoxContainer/Button3" to="." method="_on_skill_selected" binds= [2]]
