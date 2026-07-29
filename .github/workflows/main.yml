@@ -1,0 +1,81 @@
+name: Build MythDefense Android
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  check-license:
+    name: Check Unity license secrets
+    runs-on: ubuntu-latest
+    outputs:
+      is_unity_license_set: ${{ steps.check.outputs.is_unity_license_set }}
+    steps:
+      - name: Check whether Unity activation secrets are present
+        id: check
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          is_set="${{ env.UNITY_LICENSE != '' }}"
+          echo "is_unity_license_set=$is_set" >> "$GITHUB_OUTPUT"
+
+  activation:
+    needs: check-license
+    if: needs.check-license.outputs.is_unity_license_set == 'false'
+    name: Request manual activation file
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request manual activation file
+        id: getManualLicenseFile
+        uses: game-ci/unity-request-activation-file@v2
+      - name: Upload activation file
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.getManualLicenseFile.outputs.filePath }}
+          path: ${{ steps.getManualLicenseFile.outputs.filePath }}
+
+  build-android:
+    needs: check-license
+    if: needs.check-license.outputs.is_unity_license_set == 'true'
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-${{ github.sha }}
+          restore-keys: |
+            Library-Android-
+
+      - name: Build Android APK
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: Android
+          buildName: MythDefense
+          androidAppBundle: false
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MythDefense-Android
+          path: build/Android/**/*.apk
+          if-no-files-found: error
