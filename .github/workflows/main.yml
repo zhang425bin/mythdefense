@@ -28,21 +28,6 @@ jobs:
           is_set="${{ env.UNITY_LICENSE != '' }}"
           echo "is_unity_license_set=$is_set" >> "$GITHUB_OUTPUT"
 
-  activation:
-    needs: check-license
-    if: needs.check-license.outputs.is_unity_license_set == 'false'
-    name: Request manual activation file
-    runs-on: ubuntu-latest
-    steps:
-      - name: Request manual activation file
-        id: getManualLicenseFile
-        uses: game-ci/unity-request-activation-file@v2
-      - name: Upload activation file
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.getManualLicenseFile.outputs.filePath }}
-          path: ${{ steps.getManualLicenseFile.outputs.filePath }}
-
   build-android:
     needs: check-license
     if: needs.check-license.outputs.is_unity_license_set == 'true'
